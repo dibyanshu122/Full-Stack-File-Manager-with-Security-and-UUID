@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pro Uploader</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Pro File Manager</h1>
+        
+        <div class="info-box">
+            <p><strong>Allowed:</strong> JPG, PNG, PDF</p>
+            <p><strong>Max Size:</strong> 5MB only</p>
+        </div>
+
+        <form id="uploadForm">
+            <input type="file" id="fileInput" name="file" accept=".jpg,.jpeg,.png,.pdf" required>
+            <button type="submit">Upload Now</button>
+        </form>
+        
+        <div id="result" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const resultDiv = document.getElementById('result');
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const fileField = document.getElementById('fileInput');
+            
+            // Client-side size check (Extra Layer of Security)
+            if (fileField.files[0].size > 5 * 1024 * 1024) {
+                alert("❌ Browser Stop: File is larger than 5MB!");
+                return;
+            }
+
+            resultDiv.innerHTML = "Processing...";
+
+            const formData = new FormData();
+            formData.append('file', fileField.files[0]);
+
+            try {
+                const response = await fetch('/upload/', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert("✅ Success!");
+                    resultDiv.innerHTML = `<p style="color: green;">File Ready: <a href="${data.download_url}" target="_blank">Download Here</a></p>`;
+                } else {
+                    alert("❌ Server Error: " + data.detail);
+                    resultDiv.innerHTML = `<p style="color: red;">${data.detail}</p>`;
+                }
+            } catch (error) {
+                alert("❌ Error connecting to server");
+            }
+        };
+    </script>
+</body>
+</html>
